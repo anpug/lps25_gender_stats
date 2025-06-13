@@ -80,7 +80,7 @@ def detect_gender(full_name):
         return "unknown"
     return d.get_gender(first_name[0])
 
-def process_session_dataframe(df):
+def process_session_dataframe(df, type = "oral", ref_df = None):
     # Extract 7-character prefixes
     df["title_prefix"] = df["title"].str[:7]
     
@@ -99,7 +99,6 @@ def process_session_dataframe(df):
     final_df = df_long[["presenter_list", "chair1", "chair2", "title"]].rename(
         columns={"presenter_list": "presenter"}
     )
-
     # Clean up names
     for col in ["presenter", "chair1", "chair2"]:
         final_df[col] = final_df[col].apply(remove_digits).apply(remove_titles)
@@ -114,6 +113,24 @@ def process_session_dataframe(df):
 
     return final_df
 
+
+def assign_chairs(poster_df, oral_df):
+    # Create a new column with the prefix (e.g. "A.01.01") for both DataFrames
+    oral_df["title_prefix"] = oral_df["title"].str[:7]
+    poster_df["title_prefix"] = poster_df["title"].str[:7]
+
+    # Create a mapping from title_prefix to chairs in oral_df
+    prefix_to_chair = oral_df.drop_duplicates(subset="title_prefix").set_index("title_prefix")["chairs"].to_dict()
+
+    # Map the chairs into poster_df using the prefix
+    poster_df["chairs"] = poster_df["title_prefix"].map(prefix_to_chair)
+    poster_df["chairs"] = poster_df["chairs"].fillna("N/A")
+    
+    # Optional: drop the title_prefix column if you no longer need it
+    poster_df.drop(columns=["title_prefix"], inplace=True)
+    oral_df.drop(columns=["title_prefix"], inplace=True)# Create a mapping of prefixes to chairs from the oral_df
+   
+    return poster_df
 
 # === List of session IDs ===
 with open("session_ids/all_session_ids.txt", "r") as f:
@@ -177,6 +194,9 @@ panel_df = df[
 
 
 d = gender.Detector()
+
+# assign chairs to poster sessions based on oral sessions
+poster_df = assign_chairs(poster_df, oral_df)
 
 # Apply processing to oral and poster DataFrames
 final_oral_df = process_session_dataframe(oral_df)
