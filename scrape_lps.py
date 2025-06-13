@@ -70,7 +70,7 @@ def remove_digits(text):
 def remove_titles(name):
     if not isinstance(name, str):
         return name
-    return re.sub(r'\b(dr|prof|mr|ms|mrs|miss|pr)\.?\s+', '', name, flags=re.IGNORECASE).strip()
+    return re.sub(r'\b(dr|prof|mr|ms|mrs|miss|pr|MSc)\.?\s+', '', name, flags=re.IGNORECASE).strip()
 
 def detect_gender(full_name):
     if not full_name or full_name.strip().lower() == "n/a":
@@ -116,7 +116,7 @@ def process_session_dataframe(df):
 
 
 # === List of session IDs ===
-with open("session_ids.txt", "r") as f:
+with open("session_ids/all_session_ids.txt", "r") as f:
     session_ids = [line.strip() for line in f if line.strip()]
 
 # === Base URL for ESA LPS25 session pages ===
@@ -154,7 +154,7 @@ for sid in session_ids:
 
 # === Create and save the DataFrame ===
 df = pd.DataFrame(data_rows)
-df.to_csv("esa_lps25_sessions.csv", index=False)
+df.to_csv("output_files/esa_lps25_sessions.csv", index=False)
 print("Saved session data to esa_lps25_sessions.csv")
 
 
@@ -182,7 +182,6 @@ d = gender.Detector()
 final_oral_df = process_session_dataframe(oral_df)
 final_poster_df = process_session_dataframe(poster_df)
 
-
 # Initialize storage
 panel_rows = []
 
@@ -208,8 +207,8 @@ for _, row in panel_df.iterrows():
 final_panel_df = pd.DataFrame(panel_rows)
 
 # Save the final DataFrames
-final_oral_df.to_csv("esa_lps25_oral_sessions.csv", index=False)
-final_poster_df.to_csv("esa_lps25_poster_sessions.csv", index=False)
-final_panel_df.to_csv("esa_lps25_panel_sessions.csv", index=False)
+final_oral_df.to_csv("output_files/esa_lps25_oral_sessions.csv", index=False)
+final_poster_df.to_csv("output_files/esa_lps25_poster_sessions.csv", index=False)
+final_panel_df.to_csv("output_files/esa_lps25_panel_sessions.csv", index=False)
 print("Saved final DataFrames to esa_lps25_oral_sessions.csv, esa_lps25_poster_sessions.csv, esa_lps25_panel_sessions.csv")
 # %%
